@@ -1,0 +1,170 @@
+#!/bin/bash
+
+set -e
+
+echo "🚀 Updating system..."
+sudo apt update && sudo apt upgrade -y
+
+echo "📦 Installing base packages..."
+sudo apt install -y curl wget git zsh build-essential ca-certificates gnupg lsb-release fonts-jetbrains-mono
+
+# -----------------------------
+# Git Config
+# -----------------------------
+echo "🔧 Configuring Git..."
+git config --global user.name "jarif"
+git config --global user.email "xjarifx@gmail.com"
+
+# -----------------------------
+# Node.js via NVM (BEST METHOD)
+# -----------------------------
+echo "🟢 Installing NVM + Node.js..."
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+
+export NVM_DIR="$HOME/.nvm"
+source "$NVM_DIR/nvm.sh"
+
+nvm install --lts
+nvm use --lts
+
+# -----------------------------
+# Docker (OFFICIAL METHOD)
+# -----------------------------
+echo "🐳 Installing Docker (official repo)..."
+
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+echo \
+"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+$(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+sudo usermod -aG docker $USER
+
+# -----------------------------
+# PostgreSQL
+# -----------------------------
+echo "🐘 Installing PostgreSQL..."
+sudo apt install -y postgresql postgresql-contrib
+
+# -----------------------------
+# Postman (Snap OK)
+# -----------------------------
+echo "📬 Installing Postman..."
+sudo snap install postman
+
+# -----------------------------
+# LibreOffice
+# -----------------------------
+echo "📝 Installing LibreOffice..."
+sudo apt install -y libreoffice
+
+# -----------------------------
+# Brave Browser (OFFICIAL METHOD)
+# -----------------------------
+echo "🦁 Installing Brave..."
+sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave.com/static-assets/brave-core.asc
+
+echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" | \
+sudo tee /etc/apt/sources.list.d/brave-browser-release.list
+
+sudo apt update
+sudo apt install -y brave-browser
+
+# -----------------------------
+# Alacritty Terminal
+# -----------------------------
+echo "💻 Installing Alacritty..."
+sudo apt install -y alacritty
+
+# -----------------------------
+# Zsh + Oh My Zsh (NON-INTERACTIVE)
+# -----------------------------
+echo "⚡ Installing Oh My Zsh..."
+RUNZSH=no CHSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
+# -----------------------------
+# VS Code
+# -----------------------------
+echo "🧠 Installing VS Code..."
+
+wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
+sudo install -o root -g root -m 644 packages.microsoft.gpg /usr/share/keyrings/
+
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" | \
+sudo tee /etc/apt/sources.list.d/vscode.list
+
+sudo apt update
+sudo apt install -y code
+
+# -----------------------------
+# VS Code Settings
+# -----------------------------
+echo "⚙️ Applying VS Code settings..."
+
+mkdir -p ~/.config/Code/User
+
+cat <<EOF > ~/.config/Code/User/settings.json
+{
+  "terminal.integrated.commandsToSkipShell": [
+    "kilo-code.new.agentManagerOpen",
+    "kilo-code.new.agentManager.showTerminal"
+  ],
+  "chat.viewSessions.orientation": "stacked",
+  "files.autoSave": "afterDelay",
+  "editor.wordWrap": "on",
+  "editor.fontFamily": "JetBrains Mono",
+  "editor.cursorBlinking": "smooth",
+  "editor.cursorSmoothCaretAnimation": "on",
+  "editor.cursorStyle": "block",
+  "editor.minimap.enabled": false,
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "workbench.iconTheme": "material-icon-theme",
+  "kilo-code.new.autocomplete.enableAutoTrigger": true,
+  "kilo-code.new.autocomplete.enableSmartInlineTaskKeybinding": true,
+  "kilo-code.new.autocomplete.enableChatAutocomplete": true,
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  "chat.agent.maxRequests": 500,
+  "github.copilot.enable": {
+    "*": true,
+    "plaintext": false,
+    "markdown": false,
+    "scminput": false,
+    "cpp": false
+  }
+}
+EOF
+
+# -----------------------------
+# VS Code Extensions
+# -----------------------------
+echo "🧩 Installing VS Code extensions..."
+
+extensions=(
+  ms-vscode.cpptools
+  streetsidesoftware.code-spell-checker
+  github.copilot
+  esbenp.prettier-vscode
+  prisma.prisma
+  ms-python.python
+  bradlc.vscode-tailwindcss
+  tomoki1207.pdf
+  formulahendry.code-runner
+  pkief.material-icon-theme
+  kilocode.kilo-code
+)
+
+for ext in "${extensions[@]}"; do
+  code --install-extension $ext
+done
+
+echo "✅ DONE!"
+echo "👉 Run: newgrp docker OR reboot"
