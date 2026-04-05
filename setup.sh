@@ -19,20 +19,15 @@ git config --global user.name "jarif"
 git config --global user.email "xjarifx@gmail.com"
 
 # -----------------------------
-# C / C++ (already via build-essential)
+# Python (modern Ubuntu requires this)
 # -----------------------------
-echo "💻 C/C++ toolchain installed via build-essential"
-
-# -----------------------------
-# Python (FULL DEV SETUP)
-# -----------------------------
-echo "🐍 Installing Python (dev setup)..."
+echo "🐍 Installing Python..."
 sudo apt install -y python3 python3-pip python3-venv python3-dev
 
 # -----------------------------
 # Node.js via NVM
 # -----------------------------
-echo "🟢 Installing NVM + Node.js..."
+echo "🟢 Installing Node.js via NVM..."
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 
 export NVM_DIR="$HOME/.nvm"
@@ -42,13 +37,18 @@ nvm install --lts
 nvm use --lts
 
 # -----------------------------
-# Docker (official)
+# Docker (OFFICIAL + FIXED)
 # -----------------------------
-echo "🐳 Installing Docker..."
+echo "🐳 Installing Docker (official for Ubuntu 25.10)..."
 
+# Remove old versions (IMPORTANT)
+sudo apt remove -y docker docker-engine docker.io containerd runc || true
+
+# Setup repo
 sudo install -m 0755 -d /etc/apt/keyrings
+
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
-  sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 
 sudo chmod a+r /etc/apt/keyrings/docker.gpg
 
@@ -59,8 +59,15 @@ $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
 sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 sudo apt update
+
+# Install Docker Engine
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
+# Enable service (NEW BEST PRACTICE)
+sudo systemctl enable docker
+sudo systemctl start docker
+
+# Add user to docker group
 sudo usermod -aG docker $USER
 
 # -----------------------------
@@ -96,7 +103,7 @@ sudo apt update
 sudo apt install -y brave-browser
 
 # -----------------------------
-# Terminal + Zsh
+# Terminal
 # -----------------------------
 echo "💻 Installing Alacritty..."
 sudo apt install -y alacritty
@@ -132,11 +139,6 @@ mkdir -p ~/.config/Code/User
 
 cat <<EOF > ~/.config/Code/User/settings.json
 {
-  "terminal.integrated.commandsToSkipShell": [
-    "kilo-code.new.agentManagerOpen",
-    "kilo-code.new.agentManager.showTerminal"
-  ],
-  "chat.viewSessions.orientation": "stacked",
   "files.autoSave": "afterDelay",
   "editor.wordWrap": "on",
   "editor.fontFamily": "JetBrains Mono",
