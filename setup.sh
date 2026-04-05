@@ -6,7 +6,10 @@ echo "🚀 Updating system..."
 sudo apt update && sudo apt upgrade -y
 
 echo "📦 Installing base packages..."
-sudo apt install -y curl wget git zsh build-essential ca-certificates gnupg lsb-release fonts-jetbrains-mono
+sudo apt install -y \
+  curl wget git zsh build-essential \
+  ca-certificates gnupg lsb-release \
+  fonts-jetbrains-mono
 
 # -----------------------------
 # Git Config
@@ -16,7 +19,18 @@ git config --global user.name "jarif"
 git config --global user.email "xjarifx@gmail.com"
 
 # -----------------------------
-# Node.js via NVM (BEST METHOD)
+# C / C++ (already via build-essential)
+# -----------------------------
+echo "💻 C/C++ toolchain installed via build-essential"
+
+# -----------------------------
+# Python (FULL DEV SETUP)
+# -----------------------------
+echo "🐍 Installing Python (dev setup)..."
+sudo apt install -y python3 python3-pip python3-venv python3-dev
+
+# -----------------------------
+# Node.js via NVM
 # -----------------------------
 echo "🟢 Installing NVM + Node.js..."
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
@@ -28,16 +42,19 @@ nvm install --lts
 nvm use --lts
 
 # -----------------------------
-# Docker (OFFICIAL METHOD)
+# Docker (official)
 # -----------------------------
-echo "🐳 Installing Docker (official repo)..."
+echo "🐳 Installing Docker..."
 
 sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
+  sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
 sudo chmod a+r /etc/apt/keyrings/docker.gpg
 
 echo \
-"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+https://download.docker.com/linux/ubuntu \
 $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
 sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
@@ -53,7 +70,7 @@ echo "🐘 Installing PostgreSQL..."
 sudo apt install -y postgresql postgresql-contrib
 
 # -----------------------------
-# Postman (Snap OK)
+# Postman
 # -----------------------------
 echo "📬 Installing Postman..."
 sudo snap install postman
@@ -65,38 +82,42 @@ echo "📝 Installing LibreOffice..."
 sudo apt install -y libreoffice
 
 # -----------------------------
-# Brave Browser (OFFICIAL METHOD)
+# Brave Browser
 # -----------------------------
 echo "🦁 Installing Brave..."
-sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg https://brave.com/static-assets/brave-core.asc
+sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg \
+https://brave.com/static-assets/brave-core.asc
 
-echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" | \
+echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] \
+https://brave-browser-apt-release.s3.brave.com/ stable main" | \
 sudo tee /etc/apt/sources.list.d/brave-browser-release.list
 
 sudo apt update
 sudo apt install -y brave-browser
 
 # -----------------------------
-# Alacritty Terminal
+# Terminal + Zsh
 # -----------------------------
 echo "💻 Installing Alacritty..."
 sudo apt install -y alacritty
 
-# -----------------------------
-# Zsh + Oh My Zsh (NON-INTERACTIVE)
-# -----------------------------
 echo "⚡ Installing Oh My Zsh..."
-RUNZSH=no CHSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+RUNZSH=no CHSH=no sh -c \
+"$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
 # -----------------------------
 # VS Code
 # -----------------------------
 echo "🧠 Installing VS Code..."
 
-wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
-sudo install -o root -g root -m 644 packages.microsoft.gpg /usr/share/keyrings/
+wget -qO- https://packages.microsoft.com/keys/microsoft.asc | \
+gpg --dearmor > packages.microsoft.gpg
 
-echo "deb [arch=amd64 signed-by=/usr/share/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" | \
+sudo install -o root -g root -m 644 packages.microsoft.gpg \
+/usr/share/keyrings/
+
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/packages.microsoft.gpg] \
+https://packages.microsoft.com/repos/code stable main" | \
 sudo tee /etc/apt/sources.list.d/vscode.list
 
 sudo apt update
@@ -127,19 +148,8 @@ cat <<EOF > ~/.config/Code/User/settings.json
   "editor.formatOnPaste": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "workbench.iconTheme": "material-icon-theme",
-  "kilo-code.new.autocomplete.enableAutoTrigger": true,
-  "kilo-code.new.autocomplete.enableSmartInlineTaskKeybinding": true,
-  "kilo-code.new.autocomplete.enableChatAutocomplete": true,
   "git.enableSmartCommit": true,
-  "git.confirmSync": false,
-  "chat.agent.maxRequests": 500,
-  "github.copilot.enable": {
-    "*": true,
-    "plaintext": false,
-    "markdown": false,
-    "scminput": false,
-    "cpp": false
-  }
+  "git.confirmSync": false
 }
 EOF
 
@@ -150,11 +160,11 @@ echo "🧩 Installing VS Code extensions..."
 
 extensions=(
   ms-vscode.cpptools
+  ms-python.python
   streetsidesoftware.code-spell-checker
   github.copilot
   esbenp.prettier-vscode
   prisma.prisma
-  ms-python.python
   bradlc.vscode-tailwindcss
   tomoki1207.pdf
   formulahendry.code-runner
