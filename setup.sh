@@ -1,195 +1,92 @@
 #!/bin/bash
+# Ultimate Ubuntu Setup Script
+# This script will install all requested software.
+# It may take 10-15 minutes to complete.
 
-set -e
+set -e  # Stop the script if any command fails
 
-echo "🚀 Updating system..."
+echo "======================================"
+echo " Starting Ubuntu Setup..."
+echo "======================================"
+
+# 1. Update System & Install Prerequisites
+echo "[1/13] Updating system and installing prerequisites..."
 sudo apt update && sudo apt upgrade -y
+sudo apt install -y wget curl software-properties-common apt-transport-https gnupg2 ca-certificates ufw
 
-echo "📦 Installing base packages..."
-sudo apt install -y \
-  curl wget git zsh build-essential \
-  ca-certificates gnupg lsb-release \
-  fonts-jetbrains-mono
+# 2. Install Ghostty (Terminal)
+echo "[2/13] Installing Ghostty terminal..."
+sudo snap install ghostty --classic
 
-# -----------------------------
-# Git Config
-# -----------------------------
-echo "🔧 Configuring Git..."
-git config --global user.name "jarif"
-git config --global user.email "xjarifx@gmail.com"
+# 3. Install Free Download Manager
+echo "[3/13] Installing Free Download Manager..."
+wget -O /tmp/freedownloadmanager.deb https://dn3.freedownloadmanager.org/6/latest/freedownloadmanager.deb
+sudo dpkg -i /tmp/freedownloadmanager.deb || sudo apt-get install -f -y
+rm /tmp/freedownloadmanager.deb
 
-# -----------------------------
-# Python
-# -----------------------------
-echo "🐍 Installing Python..."
-sudo apt install -y python3 python3-pip python3-venv python3-dev
-
-# -----------------------------
-# Node.js via NVM
-# -----------------------------
-echo "🟢 Installing Node.js via NVM..."
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
-
-# Load NVM immediately in current shell session
-export NVM_DIR="$HOME/.nvm"
-# shellcheck disable=SC1091
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-
-nvm install --lts
-nvm use --lts
-nvm alias default 'lts/*'
-
-# -----------------------------
-# Docker (OFFICIAL — Ubuntu 25.10 compatible)
-# -----------------------------
-echo "🐳 Installing Docker..."
-
-# Remove conflicting packages
-sudo apt remove -y docker.io docker-doc docker-compose docker-compose-v2 \
-  podman-docker containerd runc || true
-
-# Install dependencies
-sudo apt install -y ca-certificates curl
-sudo install -m 0755 -d /etc/apt/keyrings
-
-# Add Docker's official GPG key (modern method)
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
-  -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-
-# Add Docker repo (DEB822 format, works correctly on Ubuntu 25.10 "questing")
-sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
-Types: deb
-URIs: https://download.docker.com/linux/ubuntu
-Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
-Components: stable
-Architectures: $(dpkg --print-architecture)
-Signed-By: /etc/apt/keyrings/docker.asc
-EOF
-
-sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io \
-  docker-buildx-plugin docker-compose-plugin
-
-sudo systemctl enable docker
-sudo systemctl start docker
-sudo usermod -aG docker "$USER"
-
-# -----------------------------
-# PostgreSQL
-# -----------------------------
-echo "🐘 Installing PostgreSQL..."
-sudo apt install -y postgresql postgresql-contrib
-
-# -----------------------------
-# Postman
-# -----------------------------
-echo "📬 Installing Postman..."
-sudo snap install postman
-
-# -----------------------------
-# LibreOffice
-# -----------------------------
-echo "📝 Installing LibreOffice..."
-sudo apt install -y libreoffice
-
-# -----------------------------
-# Brave Browser
-# -----------------------------
-echo "🦁 Installing Brave..."
-sudo curl -fsSLo /usr/share/keyrings/brave-browser-archive-keyring.gpg \
-  https://brave.com/static-assets/brave-core.asc
-
-echo "deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] \
-https://brave-browser-apt-release.s3.brave.com/ stable main" | \
-sudo tee /etc/apt/sources.list.d/brave-browser-release.list
-
-sudo apt update
-sudo apt install -y brave-browser
-
-# -----------------------------
-# Terminal — Alacritty + Zsh
-# -----------------------------
-echo "💻 Installing Alacritty..."
-sudo apt install -y alacritty
-
-echo "⚡ Installing Oh My Zsh..."
-RUNZSH=no CHSH=no sh -c \
-  "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-
-# Set Zsh as default shell
-echo "🐚 Setting Zsh as default shell..."
-chsh -s "$(which zsh)"
-
-# -----------------------------
-# VS Code
-# -----------------------------
-echo "🧠 Installing VS Code..."
-
-wget -qO- https://packages.microsoft.com/keys/microsoft.asc | \
-  gpg --dearmor > /tmp/packages.microsoft.gpg
-
-sudo install -o root -g root -m 644 /tmp/packages.microsoft.gpg \
-  /usr/share/keyrings/packages.microsoft.gpg
-
-rm /tmp/packages.microsoft.gpg
-
-echo "deb [arch=amd64 signed-by=/usr/share/keyrings/packages.microsoft.gpg] \
-https://packages.microsoft.com/repos/code stable main" | \
-sudo tee /etc/apt/sources.list.d/vscode.list
-
+# 4. Install VS Code (Official Repository method for best updates)
+echo "[4/13] Installing Visual Studio Code..."
+wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg
+sudo install -D -o root -g root -m 644 packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg
+sudo sh -c 'echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list'
+rm -f packages.microsoft.gpg
 sudo apt update
 sudo apt install -y code
 
-# -----------------------------
-# VS Code Settings
-# -----------------------------
-echo "⚙️ Applying VS Code settings..."
-mkdir -p ~/.config/Code/User
+# 5. Install DBeaver CE (Database Tool)
+echo "[5/13] Installing DBeaver Community Edition..."
+sudo snap install dbeaver-ce
 
-cat <<'EOF' > ~/.config/Code/User/settings.json
-{
-  "files.autoSave": "afterDelay",
-  "editor.wordWrap": "on",
-  "editor.fontFamily": "JetBrains Mono",
-  "editor.cursorBlinking": "smooth",
-  "editor.cursorSmoothCaretAnimation": "on",
-  "editor.cursorStyle": "block",
-  "editor.minimap.enabled": false,
-  "editor.formatOnSave": true,
-  "editor.formatOnPaste": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "workbench.iconTheme": "material-icon-theme",
-  "git.enableSmartCommit": true,
-  "git.confirmSync": false
-}
-EOF
+# 6. Install Brave Browser
+echo "[6/13] Installing Brave browser..."
+sudo snap install brave
 
-# -----------------------------
-# VS Code Extensions
-# -----------------------------
-echo "🧩 Installing VS Code extensions..."
+# 7. Install LibreOffice
+echo "[7/13] Installing LibreOffice..."
+sudo snap install libreoffice
 
-extensions=(
-  ms-vscode.cpptools
-  ms-python.python
-  streetsidesoftware.code-spell-checker
-  github.copilot
-  esbenp.prettier-vscode
-  prisma.prisma
-  bradlc.vscode-tailwindcss
-  tomoki1207.pdf
-  formulahendry.code-runner
-  pkief.material-icon-theme
-  kilocode.kilo-code
-)
+# 8. Install GNOME Tweaks and Extension Manager
+echo "[8/13] Installing GNOME Tweaks & Extensions..."
+sudo apt install -y gnome-tweaks gnome-shell-extension-manager
 
-for ext in "${extensions[@]}"; do
-  code --install-extension "$ext"
-done
+# 9. Install VLC Media Player
+echo "[9/13] Installing VLC media player..."
+sudo snap install vlc
 
-echo ""
-echo "✅ DONE!"
-echo "👉 Reboot recommended: sudo reboot"
-echo "👉 Or at minimum run: newgrp docker"
-echo "👉 Zsh will be active on next login"
+# 10. Install Git and Configure User Details
+echo "[10/13] Installing Git and setting up user..."
+sudo apt install -y git
+git config --global user.name "jarif"
+git config --global user.email "xjarifx@gmail.com"  # ⚠️ You can edit this email manually if needed later
+
+# 11. Install Node.js and npm (Using NodeSource for latest stable version)
+echo "[11/13] Installing Node.js and npm..."
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -  # Version 20 is the current LTS
+sudo apt install -y nodejs
+
+# 12. Install Docker
+echo "[12/13] Installing Docker..."
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker $USER
+sudo systemctl enable docker
+rm get-docker.sh
+
+# 13. Install Full PostgreSQL Setup
+echo "[13/13] Installing PostgreSQL..."
+sudo apt install -y postgresql postgresql-contrib
+sudo systemctl enable postgresql
+sudo systemctl start postgresql
+
+# Clean up
+echo "Cleaning up..."
+sudo apt autoremove -y
+
+echo "======================================"
+echo " Installation Complete!"
+echo "======================================"
+echo "✅ IMPORTANT NEXT STEPS:"
+echo "1. Log out and log back in for Docker permissions to take effect."
+echo "2. To set a password for PostgreSQL, run: sudo -u postgres psql -c \"ALTER USER postgres PASSWORD 'YourStrongPass';\""
+echo "3. Verify Git Config: git config --list"
+echo "======================================"
